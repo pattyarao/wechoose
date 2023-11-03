@@ -1,69 +1,30 @@
 package main
 
 import (
-	"context"
 	"log"
-	"os"
-
-	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/pattyarao/wechoose/database"
+	"github.com/pattyarao/wechoose/router"
 )
 
-type Test struct {
-	Message string `json:"message"`
-}
-
-type MongoInstance struct {
-	Client *mongo.Client
-	Db     *mongo.Database
-}
-
-var mg MongoInstance
-
-func Connect() error {
-	godotenv.Load()
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(os.Getenv("MONGO_URI")))
-
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
-
-	db := client.Database(os.Getenv("DB_NAME"))
-
-	if err != nil {
-		return err
-	}
-
-	mg = MongoInstance{
-		Client: client,
-		Db:     db,
-	}
-	return nil
-}
-
 func main() {
-	if err := Connect(); err != nil {
+	app := fiber.New()
+
+	app.Use(cors.New())
+
+	if err := database.Connect(); err != nil {
+		log.Fatal(err)
+	}
+	// makes sure the user_name is unique
+	if err := database.CreateUniqueIndex(); err != nil {
 		log.Fatal(err)
 	}
 
-	app := fiber.New()
+	database.Disconnect()
 
-	message := Test{
-		Message: "Hello!",
-	}
-
-	app.Get("/ping", func(c *fiber.Ctx) error {
-		return c.JSON(message)
-	})
+	router.SetupRoutes(app)
 
 	log.Fatal(app.Listen(":4000"))
 }
