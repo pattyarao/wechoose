@@ -9,7 +9,7 @@
 >
   <Navbar />
   <div class=" flex justify-between p-4">
-    <!-- <OngoingPolls /> -->
+    <OngoingPolls />
     <PollsFeed />
   </div>
 </main>
