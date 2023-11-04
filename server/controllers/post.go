@@ -6,6 +6,7 @@ import (
 	"github.com/pattyarao/wechoose/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func CreatePost(c *fiber.Ctx) error {
@@ -13,24 +14,49 @@ func CreatePost(c *fiber.Ctx) error {
 		return c.Status(500).SendString("Server error!")
 	}
 
-	collection := database.MG.Db.Collection("posts")
+	postCollection := database.MG.Db.Collection("posts")
+	userCollection := database.MG.Db.Collection("users")
 
 	post := new(models.Post)
 
 	if err := c.BodyParser(post); err != nil {
 		return c.Status(400).SendString(err.Error())
 	}
+	userFilter := bson.M{"user_name": post.Name}
+	record := userCollection.FindOne(c.Context(), userFilter)
 
-	insertionResult, err := collection.InsertOne(c.Context(), post)
+	userFound := &models.User{}
+	record.Decode(userFound)
+
+	if userFound.Username != post.Name {
+		return c.Status(404).SendString("User not found")
+	}
+
+	insertionResult, err := postCollection.InsertOne(c.Context(), post)
 	if err != nil {
 		return c.Status(500).SendString(err.Error())
 	}
 
 	filter := bson.D{{Key: "_id", Value: insertionResult.InsertedID}}
-	createdRecord := collection.FindOne(c.Context(), filter)
+	createdRecord := postCollection.FindOne(c.Context(), filter)
 
 	createdPost := &models.Post{}
 	createdRecord.Decode(createdPost)
+
+	userFound.Polls = append(userFound.Polls, createdPost.Id)
+
+	userUpdate := bson.D{{Key: "$set", Value: bson.D{
+		{Key: "polls", Value: userFound.Polls},
+	}}}
+
+	err = database.MG.Db.Collection("users").FindOneAndUpdate(c.Context(), userFilter, userUpdate).Err()
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return c.Status(404).SendString("No document found!")
+		}
+		return c.Status(500).SendString(err.Error())
+	}
 
 	database.Disconnect()
 	return c.Status(200).JSON(createdPost)
