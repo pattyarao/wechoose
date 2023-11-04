@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   interface PostType {
     name: string;
     title: string;
@@ -32,33 +33,45 @@
       choices: ["November 1", "November 2", "November 3", "November 4"],
     },
   ];
+
+  let data: PostType[];
+
+  onMount(async () => {
+    const res = await fetch(import.meta.env.VITE_API_URL + "/post/");
+    data = await res.json();
+    // console.log(import.meta.env.VITE_API_URL);
+  });
 </script>
 
 <div class="w-[70%] h-full flex">
   <div class="w-full flex flex-col gap-8 text-white">
-    {#each dummyData as data}
-      <div class="bg-[#F7F7F7]/20 p-4 flex flex-col gap-4 rounded-lg">
-        <p>Posted by {data.name}</p>
-        <div class="flex flex-col gap-2.5">
-          <p class="font-bold text-xl text-white">{data.title}</p>
+    {#if data}
+      {#each data as data}
+        <div class="bg-[#F7F7F7]/20 p-4 flex flex-col gap-4 rounded-lg">
+          <p>Posted by {data.name}</p>
+          <div class="flex flex-col gap-2.5">
+            <p class="font-bold text-xl text-white">{data.title}</p>
 
-          {#if data.choices.length > 2}
-            <div class="w-full flex flex-wrap gap-2 text-center">
-              {#each data.choices as choice}
-                <p class="bg-[#EEEEEE]/40 p-2 rounded-md">
-                  {choice}
-                </p>
-              {/each}
-            </div>
-          {:else}
-            <div class="w-full flex flex-col gap-2 text-center">
-              {#each data.choices as choice}
-                <p class="bg-[#EEEEEE]/40 p-2 rounded-md">{choice}</p>
-              {/each}
-            </div>
-          {/if}
+            {#if data.choices.length > 2}
+              <div class="w-full flex flex-wrap gap-2 text-center">
+                {#each data.choices as choice}
+                  <p class="bg-[#EEEEEE]/40 p-2 rounded-md">
+                    {choice}
+                  </p>
+                {/each}
+              </div>
+            {:else}
+              <div class="w-full flex flex-col gap-2 text-center">
+                {#each data.choices as choice}
+                  <p class="bg-[#EEEEEE]/40 p-2 rounded-md">{choice}</p>
+                {/each}
+              </div>
+            {/if}
+          </div>
         </div>
-      </div>
-    {/each}
+      {/each}
+    {:else}
+      <p>Loading...</p>
+    {/if}
   </div>
 </div>
