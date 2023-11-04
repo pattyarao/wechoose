@@ -1,9 +1,27 @@
 <script>
   import wechoose_logo from "../../assets/images/wechoose-logo.png";
   import weechose_logo_ver2 from "../../assets/images/we-choose-logo-ver2.png";
+
+  import { onMount, onDestroy } from "svelte";
+
+  let scrolled = false;
+
+  function handleScroll() {
+    scrolled = window.scrollY > 0;
+  }
+
+  onMount(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  });
 </script>
 
-<nav class="w-full h-fit px-4 py-4 flex flex-col justify-center gap-2">
+<nav
+  class="top-0 sticky w-full h-fit px-4 pt-4 flex flex-col justify-center gap-2"
+  class:scrolled-background={scrolled}
+>
   <div class="flex items-center justify-between">
     <img src={weechose_logo_ver2} alt="logo" class="w-[120px]" />
     <!-- <div>
@@ -42,3 +60,12 @@
   </div>
   <hr class="w-full border border-white" />
 </nav>
+
+<style>
+  .scrolled-background {
+    background-color: #331d2ca5;
+    /* opacity: 70%; */
+    transition: ease-in-out 0.5s;
+    padding-bottom: 0;
+  }
+</style>
