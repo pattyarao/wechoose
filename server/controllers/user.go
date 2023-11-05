@@ -46,6 +46,7 @@ func SignUp(c *fiber.Ctx) error {
 	createdRecord.Decode(createdUser)
 
 	database.Disconnect()
+	createdUser.Password = ""
 	return c.Status(201).JSON(createdUser)
 
 }

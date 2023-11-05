@@ -132,3 +132,47 @@ func GetPosts(c *fiber.Ctx) error {
 	database.Disconnect()
 	return c.JSON(posts)
 }
+
+func FindUserPosts(c *fiber.Ctx) error {
+	if err := database.Connect(); err != nil {
+		return c.Status(500).SendString("Server error!")
+	}
+	userCollection := database.MG.Db.Collection("users")
+	postsCollection := database.MG.Db.Collection("posts")
+	paramsId := c.Params("userId")
+
+	userId, err := primitive.ObjectIDFromHex(paramsId)
+	if err != nil {
+		return c.Status(400).SendString("Invalid Id")
+	}
+	userFilter := bson.M{"_id": userId}
+	record := userCollection.FindOne(c.Context(), userFilter)
+
+	if record.Err() != nil {
+		return c.Status(404).SendString("User not found")
+	}
+	user := &models.User{}
+	record.Decode(user)
+
+	newUserPolls := []primitive.ObjectID{}
+	for _, id := range user.Polls {
+		objectID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return c.Status(500).SendString("Server Error")
+		}
+		newUserPolls = append(newUserPolls, objectID)
+	}
+
+	filter := bson.M{"_id": bson.M{"$in": newUserPolls}}
+	posts := make([]models.Post, 0)
+	cursor, err := postsCollection.Find(c.Context(), filter)
+	if err != nil {
+		return c.Status(500).SendString("Server Error!")
+	}
+	if err := cursor.All(c.Context(), &posts); err != nil {
+		return c.Status(500).SendString(err.Error())
+	}
+
+	database.Disconnect()
+	return c.Status(200).JSON(posts)
+}

@@ -18,4 +18,5 @@ func SetupRoutes(app *fiber.App) {
 	post.Post("/", controllers.CreatePost)
 	post.Get("/:id", controllers.FindPost)
 	post.Get("/", controllers.GetPosts)
+	post.Get("/user/:userId", controllers.FindUserPosts)
 }
