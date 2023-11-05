@@ -1,6 +1,4 @@
 <script>
-  import wechoose_logo from "../../assets/images/wechoose-logo.png";
-  import weechose_logo_ver2 from "../../assets/images/we-choose-logo-ver2.png";
   import wechoose_logo_ver3 from "../../assets/images/wechoose-logo-ver3.png";
 
   import { onMount, onDestroy } from "svelte";
@@ -50,7 +48,7 @@
 <style>
   .scrolled-background {
     background-color: #331d2ca5;
-    /* opacity: 70%; */
+
     transition: ease-in-out 0.5s;
     padding-bottom: 0;
     border-bottom: 1px solid black;
