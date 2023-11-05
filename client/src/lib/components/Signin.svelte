@@ -14,9 +14,7 @@
   }
 </script>
 
-<div
-  class="w-[70vw] min-h-[70vh] flex items-center justify-center bg-gradient-to-b from-[#331D2C] to-[#A78295] via-[#3F2E3E] rounded-xl drop-shadow-xl"
->
+<div class="w-[70vw] min-h-[70vh] flex items-center justify-center rounded-xl">
   <div class="w-1/2 flex flex-col gap-10 items-center justify-center">
     <div class="w-[70%]">
       <p class="w-full text-white text-sm">Username</p>
@@ -46,9 +44,7 @@
       class="w-[70%] flex justify-center"
       on:click={handleNavigateCreateAcc}
     >
-      <p
-        class="bg-gradient-to-b from-[#331D2C] to-[#3F2E3E] px-6 py-1.5 rounded-lg text-xs text-white"
-      >
+      <p class="bg-black/50 px-6 py-1.5 rounded-lg text-xs text-[#F39F5A]">
         Don't have an account? <span class="underline cursor-pointer"
           >Create one now!</span
         >

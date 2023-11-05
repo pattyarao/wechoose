@@ -1,9 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
 
-body {
-  font-family: 'Montserrat', sans-serif;
+body{
+  background-image: url("assets/images/background-color-ver2.png");
+  font-family: 'Poppins', sans-serif;
 }

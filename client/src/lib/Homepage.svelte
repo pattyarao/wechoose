@@ -4,12 +4,10 @@
   import OngoingPolls from "./components/OngoingPolls.svelte";
 </script>
 
-<main
-  class="w-full min-h-screen flex flex-col bg-gradient-to-b from-black to-[#331D2C]"
->
+<main class="w-full min-h-screen flex flex-col gap-10">
   <Navbar />
-  <div class=" flex justify-between p-4">
-    <OngoingPolls />
+  <div class="w-full flex items-center justify-center p-4">
+    <!-- <OngoingPolls /> -->
     <PollsFeed />
   </div>
 </main>
