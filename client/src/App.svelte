@@ -2,8 +2,6 @@
   import svelteLogo from "./assets/svelte.svg";
   import viteLogo from "/vite.svg";
 
-  import TailwindCss from "./lib/TailwindCSS.svelte";
-
   import Signup from "./lib/components/Signup.svelte";
   import Signin from "./lib/components/Signin.svelte";
 
@@ -12,8 +10,6 @@
   import CreateAccount from "./lib/CreateAccount.svelte";
   import Homepage from "./lib/Homepage.svelte";
 </script>
-
-<TailwindCss />
 
 <Router>
   <main class="w-full min-h-screen flex items-center justify-center">
