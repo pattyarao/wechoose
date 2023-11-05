@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"sync"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/pattyarao/wechoose/database"
 	"github.com/pattyarao/wechoose/models"
@@ -9,28 +11,22 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func CreatePost(c *fiber.Ctx) error {
-	if err := database.Connect(); err != nil {
-		return c.Status(500).SendString("Server error!")
-	}
-
-	postCollection := database.MG.Db.Collection("posts")
+func findUser(user *models.User, c *fiber.Ctx, post models.Post, wg *sync.WaitGroup) error {
 	userCollection := database.MG.Db.Collection("users")
-
-	post := new(models.Post)
-
-	if err := c.BodyParser(post); err != nil {
-		return c.Status(400).SendString(err.Error())
-	}
 	userFilter := bson.M{"user_name": post.Name}
 	record := userCollection.FindOne(c.Context(), userFilter)
 
-	userFound := &models.User{}
-	record.Decode(userFound)
+	record.Decode(user)
 
-	if userFound.Username != post.Name {
+	if user.Username != post.Name {
 		return c.Status(404).SendString("User not found")
 	}
+	wg.Done()
+	return nil
+}
+
+func insertPost(createdPost *models.Post, post models.Post, c *fiber.Ctx, wg *sync.WaitGroup) error {
+	postCollection := database.MG.Db.Collection("posts")
 
 	insertionResult, err := postCollection.InsertOne(c.Context(), post)
 	if err != nil {
@@ -39,9 +35,32 @@ func CreatePost(c *fiber.Ctx) error {
 
 	filter := bson.D{{Key: "_id", Value: insertionResult.InsertedID}}
 	createdRecord := postCollection.FindOne(c.Context(), filter)
-
-	createdPost := &models.Post{}
 	createdRecord.Decode(createdPost)
+	wg.Done()
+	return nil
+}
+
+func CreatePost(c *fiber.Ctx) error {
+	if err := database.Connect(); err != nil {
+		return c.Status(500).SendString("Server error!")
+	}
+
+	post := new(models.Post)
+
+	if err := c.BodyParser(post); err != nil {
+		return c.Status(400).SendString(err.Error())
+	}
+	wg := &sync.WaitGroup{}
+
+	wg.Add(2)
+
+	userFilter := bson.M{"user_name": post.Name}
+	userFound := &models.User{}
+	createdPost := &models.Post{}
+
+	go findUser(userFound, c, *post, wg)
+	go insertPost(createdPost, *post, c, wg)
+	wg.Wait()
 
 	userFound.Polls = append(userFound.Polls, createdPost.Id)
 
@@ -49,7 +68,7 @@ func CreatePost(c *fiber.Ctx) error {
 		{Key: "polls", Value: userFound.Polls},
 	}}}
 
-	err = database.MG.Db.Collection("users").FindOneAndUpdate(c.Context(), userFilter, userUpdate).Err()
+	err := database.MG.Db.Collection("users").FindOneAndUpdate(c.Context(), userFilter, userUpdate).Err()
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
