@@ -9,5 +9,5 @@ type Post struct {
 
 type Choice struct {
 	Title string `json:"title" bson:"title"`
-	Votes int    `json:"votes,omitempty" bson:"votes,omitempty"`
+	Votes int    `json:"votes" bson:"votes"`
 }
